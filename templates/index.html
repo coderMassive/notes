@@ -5,32 +5,11 @@
 {% endblock %}
 
 {% block main %}
-    <table class="table table-hover">
-        <tr>
-            <th>Symbol</th>
-            <th>Shares</th>
-            <th>Price</th>
-            <th>TOTAL</th>
-        </tr>
-        {% for symbol in stocks %}
-            <tr>
-                <td>{{ symbol }}</td>
-                <td>{{ stocks[symbol][0] }}</td>
-                <td>{{ stocks[symbol][1] }}</td>
-                <td>{{ stocks[symbol][2] }}</td>
-            </tr>
-        {% endfor %}
-        <tr>
-            <td></td>
-            <td></td>
-            <th>Cash</th>
-            <td>{{ cash }}</td>
-        </tr>
-        <tr>
-            <td></td>
-            <td></td>
-            <th>TOTAL</th>
-            <td>{{ total }}</td>
-        </tr>
-    </table>
+    <div class="list-group sidebar">
+        <button type="button" class="list-group-item list-group-item-action active"> Cras justo odio </button>
+        <button type="button" class="list-group-item list-group-item-action"> Dapibus ac facilisis in </button>
+        <button type="button" class="list-group-item list-group-item-action"> Morbi leo risus </button>
+        <button type="button" class="list-group-item list-group-item-action"> Porta ac consectetur ac </button>
+        <button type="button" class="list-group-item list-group-item-action" disabled> Vestibulum at eros </button>
+    </div>
 {% endblock %}

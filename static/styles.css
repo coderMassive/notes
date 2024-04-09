@@ -1,6 +1,8 @@
-/* Size for brand */
-nav .navbar-brand
-{
+nav .navbar-brand {
     font-size: xx-large;
 }
 
+.sidebar {
+    float: left;
+    width: 20%;
+}
