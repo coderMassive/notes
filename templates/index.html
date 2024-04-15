@@ -6,9 +6,15 @@
 
 {% block main %}
     <div class="list-group sidebar">
-        <button type="button" class="list-group-item list-group-item-action active"> Cras justo odio </button>
-        <button type="button" class="list-group-item list-group-item-action"> Dapibus ac facilisis in </button>
-        <button type="button" class="list-group-item list-group-item-action"> Morbi leo risus </button>
-        <button type="button" class="list-group-item list-group-item-action"> Porta ac consectetur ac </button>
+        {% for note in notes %}
+            <a href="/note/{{ note['id'] }}" class="list-group-item list-group-item-action {{ 'active' if note['id'] == id else '' }}">{{ note['name'] }}</a>
+        {% endfor %}
     </div>
+    {% if ind is not undefined %}
+        <form action="/note/{{ notes[ind]['id'] }}" method="post">
+            <input type="text" name="name" value="{{ notes[ind]['name']}}">
+            <textarea name="content" rows="5" cols="20">{{ notes[ind]['content'] }}</textarea>
+            <input type="submit" value="Save">
+        </form>
+    {% endif %}
 {% endblock %}

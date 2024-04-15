@@ -13,6 +13,11 @@ Session(app)
 
 db = SQL("sqlite:///notes.db")
 
+notes = [{"id": "1", "name": "note i guess", "timestamp": 0, "content": "yes"},
+         {"id": "2", "name": "another note", "timestamp": 0, "content": "amongus"},
+         {"id": "3", "name": "yet another note", "timestamp": 0, "content": "i now exist"},
+         {"id": "4", "name": "last note", "timestamp": 0, "content": "karlson released"}]
+
 @app.after_request
 def after_request(response):
     """Ensure responses aren't cached"""
@@ -25,28 +30,49 @@ def after_request(response):
 @app.route("/")
 @login_required
 def index():
-    return render_template("index.html")
+    return render_template("index.html", notes=notes)
 
 
-@app.route("/login", methods=["GET", "POST"])
-def login():
+@app.route("/note/<id>", methods=["GET"])
+@login_required
+def get_note(id):
+    # notes = select and order by timestamp
+    ind = notes.index(next(filter(lambda n: n.get("id") == id, notes)))
+    return render_template("index.html", notes=notes, id=id, ind=ind)
+
+
+@app.route("/note/<id>", methods=["POST"])
+@login_required
+def put_note(id):
+    i = notes.index(next(filter(lambda n: n.get("id") == id, notes)))
+    # update queries and datetime
+    notes[i]["name"] = request.form.get("name")
+    notes[i]["content"] = request.form.get("content")
+    return redirect("/note/" + id)
+
+
+@app.route("/login", methods=["GET"])
+def get_login():
     session.clear()
-    if request.method == "POST":
-        if not request.form.get("username"):
-            return apology("must provide username", 403)
-        elif not request.form.get("password"):
-            return apology("must provide password", 403)
-        rows = db.execute(
-            "SELECT * FROM users WHERE username = ?", request.form.get("username")
-        )
-        if len(rows) != 1 or not check_password_hash(
-            rows[0]["hash"], request.form.get("password")
-        ):
-            return apology("invalid username and/or password", 403)
-        session["user_id"] = rows[0]["id"]
-        return redirect("/")
-    else:
-        return render_template("login.html")
+    return render_template("login.html")
+
+
+@app.route("/login", methods=["POST"])
+def post_login():
+    session.clear()
+    if not request.form.get("username"):
+        return apology("must provide username", 403)
+    elif not request.form.get("password"):
+        return apology("must provide password", 403)
+    rows = db.execute(
+        "SELECT * FROM users WHERE username = ?", request.form.get("username")
+    )
+    if len(rows) != 1 or not check_password_hash(
+        rows[0]["hash"], request.form.get("password")
+    ):
+        return apology("invalid username and/or password", 403)
+    session["user_id"] = rows[0]["id"]
+    return redirect("/")
 
 
 @app.route("/logout")
