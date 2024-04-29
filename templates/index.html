@@ -9,12 +9,20 @@
         {% for note in notes %}
             <a href="/note/{{ note['id'] }}" class="list-group-item list-group-item-action {{ 'active' if note['id'] == id else '' }}">{{ note['name'] }}</a>
         {% endfor %}
+        <br>
+        <form action="/add" method="post">
+            <input type="text" name="name" class="wide top form-control" placeholder="Name">
+            <input type="submit" class="wide top btn btn-success" value="Add">
+        </form>
     </div>
     {% if ind is not undefined %}
         <form action="/note/{{ notes[ind]['id'] }}" method="post">
-            <input type="text" name="name" value="{{ notes[ind]['name']}}">
-            <textarea name="content" rows="5" cols="20">{{ notes[ind]['content'] }}</textarea>
-            <input type="submit" value="Save">
+            <input type="text" name="name" class="right long form-control" value="{{ notes[ind]['name']}}">
+            <textarea name="content" class="right long form-control" rows="5" cols="20">{{ notes[ind]['content'] }}</textarea>
+            <input type="submit" class="left-margin short btn btn-primary left" value="Save">
+        </form>
+        <form action="/delete/{{ notes[ind]['id'] }}" method="post">
+            <input type="submit" class="short btn btn-danger left" value="Delete">
         </form>
     {% endif %}
 {% endblock %}

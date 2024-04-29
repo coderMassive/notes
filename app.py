@@ -13,11 +13,6 @@ Session(app)
 
 db = SQL("sqlite:///notes.db")
 
-notes = [{"id": "1", "name": "note i guess", "timestamp": 0, "content": "yes"},
-         {"id": "2", "name": "another note", "timestamp": 0, "content": "amongus"},
-         {"id": "3", "name": "yet another note", "timestamp": 0, "content": "i now exist"},
-         {"id": "4", "name": "last note", "timestamp": 0, "content": "karlson released"}]
-
 @app.after_request
 def after_request(response):
     """Ensure responses aren't cached"""
@@ -27,27 +22,38 @@ def after_request(response):
     return response
 
 
-@app.route("/")
+@app.route("/", methods=["GET"])
 @login_required
 def index():
-    return render_template("index.html", notes=notes)
+    return render_template("index.html", notes=db.execute("SELECT notes.id as id, name, content FROM notes JOIN xref ON notes.id = xref.noteid WHERE userid = ? ORDER BY timestamp DESC", session["user_id"]))
+
+@app.route("/add", methods=["POST"])
+@login_required
+def add_note():
+    db.execute("INSERT INTO notes (name, timestamp, content) VALUES (?, CURRENT_TIMESTAMP, '')", request.form.get("name"))
+    db.execute("INSERT INTO xref (userid, noteid) VALUES (?, (SELECT MAX(id) FROM notes))", session["user_id"])
+    return redirect("/note/" + str(db.execute("SELECT MAX(id) AS x FROM notes")[0]["x"]))
+
+@app.route("/delete/<id>", methods=["POST"])
+@login_required
+def delete_note(id):
+    db.execute("DELETE FROM xref WHERE noteid = ?", id)
+    db.execute("DELETE FROM notes WHERE id = ?", id)
+    return redirect("/")
 
 
 @app.route("/note/<id>", methods=["GET"])
 @login_required
 def get_note(id):
-    # notes = select and order by timestamp
-    ind = notes.index(next(filter(lambda n: n.get("id") == id, notes)))
+    notes = db.execute("SELECT notes.id as id, name, content FROM notes JOIN xref ON notes.id = xref.noteid WHERE userid = ? ORDER BY timestamp DESC", session["user_id"])
+    ind = notes.index(next(filter(lambda n: n.get("id") == int(id), notes)))
     return render_template("index.html", notes=notes, id=id, ind=ind)
 
 
 @app.route("/note/<id>", methods=["POST"])
 @login_required
 def put_note(id):
-    i = notes.index(next(filter(lambda n: n.get("id") == id, notes)))
-    # update queries and datetime
-    notes[i]["name"] = request.form.get("name")
-    notes[i]["content"] = request.form.get("content")
+    db.execute("UPDATE notes SET name = ?, timestamp = CURRENT_TIMESTAMP, content = ? WHERE id = ?", request.form.get("name"), request.form.get("content"), id)
     return redirect("/note/" + id)
 
 
