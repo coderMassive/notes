@@ -31,3 +31,7 @@ nav .navbar-brand {
     position: relative;
     left: 20%;
 }
+
+.top {
+    margin-top: 0.5em;
+}

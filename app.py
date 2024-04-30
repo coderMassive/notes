@@ -29,7 +29,7 @@ def index():
 
 @app.route("/add", methods=["POST"])
 @login_required
-def add_note():
+def post_note():
     db.execute("INSERT INTO notes (name, timestamp, content) VALUES (?, CURRENT_TIMESTAMP, '')", request.form.get("name"))
     db.execute("INSERT INTO xref (userid, noteid) VALUES (?, (SELECT MAX(id) FROM notes))", session["user_id"])
     return redirect("/note/" + str(db.execute("SELECT MAX(id) AS x FROM notes")[0]["x"]))
@@ -40,6 +40,12 @@ def delete_note(id):
     db.execute("DELETE FROM xref WHERE noteid = ?", id)
     db.execute("DELETE FROM notes WHERE id = ?", id)
     return redirect("/")
+
+@app.route("/share/<id>", methods=["POST"])
+@login_required
+def share_note(id):
+    db.execute("INSERT INTO xref (userid, noteid) VALUES ((SELECT id FROM users WHERE username = ?), ?)", request.form.get("username"), id)
+    return redirect("/note/" + id)
 
 
 @app.route("/note/<id>", methods=["GET"])
