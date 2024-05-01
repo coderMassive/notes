@@ -1,33 +1,63 @@
 {% extends "layout.html" %}
 
 {% block title %}
-    Home
+    {% if ind is not undefined %}
+        {{ notes[ind]['name'] }}
+    {% else %}
+        Home
+    {% endif %}
 {% endblock %}
 
 {% block main %}
-    <div class="list-group sidebar">
-        {% for note in notes %}
-            <a href="/note/{{ note['id'] }}" class="list-group-item list-group-item-action {{ 'active' if note['id'] == id else '' }}">{{ note['name'] }}</a>
-        {% endfor %}
-        <form action="/add" method="post">
-            <input type="text" name="name" class="top wide form-control" placeholder="Name">
-            <input type="submit" class="wide top btn btn-success" value="Add">
-        </form>
+    <div class="d-flex flex-fill flex-row p-3 rounded-5" style="background-color: aliceblue";>
+        <div class="d-flex flex-column p-2 rounded-3" style="background-color: powderblue">
+            <form class="d-flex flex-row">
+                <input type="search" name="query" class="form-control w-100" placeholder="Search" value="{{ query }}" oninput="if (this.value == '') submit()">
+            </form>
+            <div class="flex-fill position-relative overflow-auto">
+                <div class="mt-2 list-group position-absolute w-100">
+                    {% for note in notes %}
+                        <a href="/note/{{ note['id'] }}?query={{ query }}" class="list-group-item list-group-item-action {{ 'active' if note['id'] == id else '' }}">{{ note['name'] }}</a>
+                    {% endfor %}
+                </div>
+            </div>
+            <form action="/add" class="mt-2 d-flex flex-row" method="post">
+                <input type="text" name="name" class="form-control w-100" placeholder="Name">
+                <input type="submit" class="btn btn-success ms-1" value="Add">
+            </form>
+        </div>
+        {% if ind is not undefined %}
+            <div class="flex-fill ms-3 d-flex flex-column">
+                <form id="note" action="/note/{{ notes[ind]['id'] }}" method="post" class="flex-fill d-flex flex-column">
+                    <input type="text" name="name" class="form-control" value="{{ notes[ind]['name']}}">
+                    <div class="flex-fill">
+                        <textarea name="content" class="form-control h-100">{{ notes[ind]['content'] }}</textarea>
+                    </div>
+                </form>
+                <div class="d-flex flex-row justify-content-between mt-1">
+                    <div class="w-100"></div>
+                    <form action="/share/{{ notes[ind]['id'] }}" class="d-flex flex-row flex-fill justify-content-center w-100" method="post">
+                        <input type="text" name="username" class="form-control w-50" placeholder="Username">
+                        <input type="submit" class="btn btn-info ms-1" value="Share">
+                    </form>
+                    <div class="d-flex flex-row w-100 justify-content-end">
+                        <input type="submit" class="btn btn-primary" form="note" value="Save">
+                        <form action="/delete/{{ notes[ind]['id'] }}" class="ms-1" method="post">
+                            <input type="submit" class="btn btn-danger" value="Delete">
+                        </form>
+                    </div>
+                </div>
+                <p class="text-muted mb-0 mt-1">
+                    {% if shared %}
+                        Shared with
+                        {% for user in shared %}
+                            {{ user['username'] }}{% if not loop.last %}, {% endif %}
+                        {% endfor %}
+                    {% else %}
+                        <br>
+                    {% endif %}
+                </p>
+            </div>
+        {% endif %}
     </div>
-    {% if ind is not undefined %}
-        <form action="/note/{{ notes[ind]['id'] }}" method="post">
-            <input type="text" name="name" class="right long form-control" value="{{ notes[ind]['name']}}">
-            <textarea name="content" class="right long form-control" rows="5" cols="20">{{ notes[ind]['content'] }}</textarea>
-            <input type="submit" class="left-margin short btn btn-primary left" value="Save">
-        </form>
-        <form action="/delete/{{ notes[ind]['id'] }}" method="post">
-            <input type="submit" class="short btn btn-danger left" value="Delete">
-        </form>
-        <br><br>
-        <form action="/share/{{ notes[ind]['id'] }}" method="post">
-            <input type="text" name="username" class="right long form-control left" placeholder="Username">
-            <br><br>
-            <input type="submit" class="right long btn btn-info left" value="Share">
-        </form>
-    {% endif %}
 {% endblock %}

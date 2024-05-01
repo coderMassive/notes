@@ -21,39 +21,75 @@ def after_request(response):
     response.headers["Pragma"] = "no-cache"
     return response
 
+def fetch_notes(query):
+    return db.execute(
+        """
+        SELECT notes.id as id, name, content
+        FROM notes
+        JOIN note_access
+            ON notes.id = note_access.noteid
+        WHERE userid = ?
+            AND (name LIKE ? OR content LIKE ?)
+        ORDER BY timestamp DESC
+        """,
+        session["user_id"],
+        "%" + query + "%",
+        "%" + query + "%"
+    )
 
 @app.route("/", methods=["GET"])
 @login_required
 def index():
-    return render_template("index.html", notes=db.execute("SELECT notes.id as id, name, content FROM notes JOIN xref ON notes.id = xref.noteid WHERE userid = ? ORDER BY timestamp DESC", session["user_id"]))
+    query = request.args.get('query') or ""
+    notes = fetch_notes(query)
+    return render_template("index.html", notes=notes, query=query)
 
 @app.route("/add", methods=["POST"])
 @login_required
 def post_note():
-    db.execute("INSERT INTO notes (name, timestamp, content) VALUES (?, CURRENT_TIMESTAMP, '')", request.form.get("name"))
-    db.execute("INSERT INTO xref (userid, noteid) VALUES (?, (SELECT MAX(id) FROM notes))", session["user_id"])
+    db.execute("INSERT INTO notes (name, timestamp, content, owner) VALUES (?, CURRENT_TIMESTAMP, '', ?)", request.form.get("name"), session["user_id"])
+    db.execute("INSERT INTO note_access (userid, noteid) VALUES (?, (SELECT MAX(id) FROM notes))", session["user_id"])
     return redirect("/note/" + str(db.execute("SELECT MAX(id) AS x FROM notes")[0]["x"]))
 
 @app.route("/delete/<id>", methods=["POST"])
 @login_required
 def delete_note(id):
-    db.execute("DELETE FROM xref WHERE noteid = ?", id)
-    db.execute("DELETE FROM notes WHERE id = ?", id)
+    owner = db.execute("SELECT owner FROM notes WHERE id = ?", id)[0]["owner"]
+    if owner == session["user_id"]:
+        db.execute("DELETE FROM note_access WHERE noteid = ?", id)
+        db.execute("DELETE FROM notes WHERE id = ?", id)
+    else:
+        db.execute("DELETE FROM note_access WHERE noteid = ? AND userid = ?", id, session["user_id"])
     return redirect("/")
 
 @app.route("/share/<id>", methods=["POST"])
 @login_required
 def share_note(id):
-    db.execute("INSERT INTO xref (userid, noteid) VALUES ((SELECT id FROM users WHERE username = ?), ?)", request.form.get("username"), id)
-    return redirect("/note/" + id)
+    owner = db.execute("SELECT owner FROM notes WHERE id = ?", id)[0]["owner"]
+    if owner == session["user_id"]:
+        try:
+            db.execute("INSERT INTO note_access (userid, noteid) VALUES ((SELECT id FROM users WHERE username = ?), ?)", request.form.get("username"), id)
+        except ValueError as ex:
+            if str(ex).split()[0] == "UNIQUE":
+                return apology("User is already shared")
+            else:
+                return apology("This user does not exist")
+        return redirect("/note/" + id)
+    else:
+        return apology("You are not the owner")
 
 
 @app.route("/note/<id>", methods=["GET"])
 @login_required
 def get_note(id):
-    notes = db.execute("SELECT notes.id as id, name, content FROM notes JOIN xref ON notes.id = xref.noteid WHERE userid = ? ORDER BY timestamp DESC", session["user_id"])
-    ind = notes.index(next(filter(lambda n: n.get("id") == int(id), notes)))
-    return render_template("index.html", notes=notes, id=id, ind=ind)
+    query = request.args.get('query') or ""
+    notes = fetch_notes(query)
+    try:
+        ind = notes.index(next(filter(lambda n: n.get("id") == int(id), notes)))
+    except:
+        return redirect("/?query=" + query)
+    shared = db.execute("SELECT username FROM users JOIN note_access ON users.id = userid JOIN notes ON noteid = notes.id WHERE noteid = ? AND userid != ?", id, session["user_id"])
+    return render_template("index.html", notes=notes, id=int(id), ind=ind, shared=shared, query=query)
 
 
 @app.route("/note/<id>", methods=["POST"])
