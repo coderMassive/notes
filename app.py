@@ -99,6 +99,7 @@ def share_note(id):
                 return apology("User is already shared")
             else:
                 return apology("This user does not exist")
+        return redirect("/note/" + id)
     else:
         return apology("You are not the owner")
 
