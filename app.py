@@ -44,39 +44,12 @@ def index():
     notes = fetch_notes(query)
     return render_template("index.html", notes=notes, query=query)
 
-@app.route("/add", methods=["POST"])
+@app.route("/notes", methods=["POST"])
 @login_required
 def post_note():
     db.execute("INSERT INTO notes (name, timestamp, content, owner) VALUES (?, CURRENT_TIMESTAMP, '', ?)", request.form.get("name"), session["user_id"])
     db.execute("INSERT INTO note_access (userid, noteid) VALUES (?, (SELECT MAX(id) FROM notes))", session["user_id"])
     return redirect("/note/" + str(db.execute("SELECT MAX(id) AS x FROM notes")[0]["x"]))
-
-@app.route("/delete/<id>", methods=["POST"])
-@login_required
-def delete_note(id):
-    owner = db.execute("SELECT owner FROM notes WHERE id = ?", id)[0]["owner"]
-    if owner == session["user_id"]:
-        db.execute("DELETE FROM note_access WHERE noteid = ?", id)
-        db.execute("DELETE FROM notes WHERE id = ?", id)
-    else:
-        db.execute("DELETE FROM note_access WHERE noteid = ? AND userid = ?", id, session["user_id"])
-    return redirect("/")
-
-@app.route("/share/<id>", methods=["POST"])
-@login_required
-def share_note(id):
-    owner = db.execute("SELECT owner FROM notes WHERE id = ?", id)[0]["owner"]
-    if owner == session["user_id"]:
-        try:
-            db.execute("INSERT INTO note_access (userid, noteid) VALUES ((SELECT id FROM users WHERE username = ?), ?)", request.form.get("username"), id)
-        except ValueError as ex:
-            if str(ex).split()[0] == "UNIQUE":
-                return apology("User is already shared")
-            else:
-                return apology("This user does not exist")
-        return redirect("/note/" + id)
-    else:
-        return apology("You are not the owner")
 
 
 @app.route("/note/<id>", methods=["GET"])
@@ -94,9 +67,40 @@ def get_note(id):
 
 @app.route("/note/<id>", methods=["POST"])
 @login_required
-def put_note(id):
-    db.execute("UPDATE notes SET name = ?, timestamp = CURRENT_TIMESTAMP, content = ? WHERE id = ?", request.form.get("name"), request.form.get("content"), id)
+def note_action(id):
+    method = request.form.get("method")
+    if method == "PUT":
+        update_note(id)
+    elif method == "DELETE":
+        delete_note(id)
     return redirect("/note/" + id)
+
+def update_note(id):
+    db.execute("UPDATE notes SET name = ?, timestamp = CURRENT_TIMESTAMP, content = ? WHERE id = ?", request.form.get("name"), request.form.get("content"), id)
+
+def delete_note(id):
+    owner = db.execute("SELECT owner FROM notes WHERE id = ?", id)[0]["owner"]
+    if owner == session["user_id"]:
+        db.execute("DELETE FROM note_access WHERE noteid = ?", id)
+        db.execute("DELETE FROM notes WHERE id = ?", id)
+    else:
+        db.execute("DELETE FROM note_access WHERE noteid = ? AND userid = ?", id, session["user_id"])
+    return redirect("/")
+
+@app.route("/note/<id>/shares", methods=["POST"])
+@login_required
+def share_note(id):
+    owner = db.execute("SELECT owner FROM notes WHERE id = ?", id)[0]["owner"]
+    if owner == session["user_id"]:
+        try:
+            db.execute("INSERT INTO note_access (userid, noteid) VALUES ((SELECT id FROM users WHERE username = ?), ?)", request.form.get("username"), id)
+        except ValueError as ex:
+            if str(ex).split()[0] == "UNIQUE":
+                return apology("User is already shared")
+            else:
+                return apology("This user does not exist")
+    else:
+        return apology("You are not the owner")
 
 
 @app.route("/login", methods=["GET"])

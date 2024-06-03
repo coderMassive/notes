@@ -21,7 +21,7 @@
                     {% endfor %}
                 </div>
             </div>
-            <form action="/add" class="mt-2 d-flex flex-row" method="post">
+            <form action="/notes" class="mt-2 d-flex flex-row" method="post">
                 <input type="text" name="name" class="form-control w-100" placeholder="Name">
                 <input type="submit" class="btn btn-success ms-1" value="Add">
             </form>
@@ -33,16 +33,18 @@
                     <div class="flex-fill">
                         <textarea name="content" class="form-control h-100">{{ notes[ind]['content'] }}</textarea>
                     </div>
+                    <input type="hidden" name="method" value="PUT">
                 </form>
                 <div class="d-flex flex-row justify-content-between mt-1">
                     <div class="w-100"></div>
-                    <form action="/share/{{ notes[ind]['id'] }}" class="d-flex flex-row flex-fill justify-content-center w-100" method="post">
+                    <form action="/note/{{ notes[ind]['id'] }}/shares" class="d-flex flex-row flex-fill justify-content-center w-100" method="post">
                         <input type="text" name="username" class="form-control w-50" placeholder="Username">
                         <input type="submit" class="btn btn-info ms-1" value="Share">
                     </form>
                     <div class="d-flex flex-row w-100 justify-content-end">
                         <input type="submit" class="btn btn-primary" form="note" value="Save">
-                        <form action="/delete/{{ notes[ind]['id'] }}" class="ms-1" method="post">
+                        <form action="/note/{{ notes[ind]['id'] }}" class="ms-1" method="post">
+                            <input type="hidden" name="method" value="DELETE">
                             <input type="submit" class="btn btn-danger" value="Delete">
                         </form>
                     </div>
