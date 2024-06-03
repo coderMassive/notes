@@ -3,13 +3,15 @@
 ## Login and Register
 If you are not logged in, you will be sent to the login page. You can register with the button in the top right corner.
 ## Home Page
-Once you log in, there will be a list of notes on the left in order of last updated. Below the sidebar is the add field and button. When you click on a note, two fields on the right will appear, the top one is the title (seen on the sidebar when selecting notes), and the bottom is the body. Below that are the share (and username field), save, and delete buttons.
+Once you log in, there will be a list of notes on the left in order of last updated. Above the sidebar is the search bar, and below the sidebar is the add field and button. When you click on a note, two fields on the right will appear, the top one is the title (seen on the sidebar when selecting notes), and the bottom is the body. Below that are the share (and username field), save, and delete buttons.
 ## Adding
 To add a note, type in the name of it and press the add button. This will add it to your list of notes and open it up for you to edit.
 ## Editing
 You can click the title and body fields to change them and click the save button to save your changes.
 ## Deleting
 This button either removes the note from the database if you are the owner (creator) or only removes your access to it if you are not (shared with).
+## Searching
+This field searches through the title and body of the notes and displays them in the sidebar. Clicking the "x" on the search bar will clear it and refresh the page to show all of the notes.
 ## Sharing
 You can share your notes with other users, letting them view and edit them, by typing in their username and pressing the button.
 <br><br>
