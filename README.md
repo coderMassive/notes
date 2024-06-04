@@ -24,5 +24,3 @@ The `users` table contains an autoincrementing `id` field, a `username` text fie
 The `notes` table contains an autoincrementing `id` field, a `name` text field representing the title of the note, a `content` text field representing the body of the note, and an `owner` field representing the id of the user that created the note.
 <br><br>
 The `note_access` table (who has access to which notes) contains an autoincrementing `id` field, a `userid` field representing the id of the user who has access, and a `noteid` field representing the id of the note the user has access to. There is also a unique constraint that makes sure `(userid, noted)` pairs are unique.
-## Mini Summary
-Add creates a note, delete deletes it if you are the owner, and removes your access if not, you can edit the notes in the text fields and click save, you can search through notes in the search bar, and you can share your notes with editing permissions (no sharing or deleting) with other users.
